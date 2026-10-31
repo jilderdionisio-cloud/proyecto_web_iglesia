@@ -16,3 +16,32 @@ export async function requestPasswordReset(email) {
   if (!response.ok) throw new Error('No fue posible solicitar la recuperación.')
   return response.json()
 }
+
+async function authorizedRequest(path, session, options = {}) {
+  const response = await fetch(`${API_URL}${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${session.access}`,
+      'Content-Type': 'application/json',
+      ...options.headers,
+    },
+  })
+  if (response.status === 204) return null
+  const data = await response.json()
+  if (!response.ok) throw new Error(data.detail || 'No fue posible completar la operación.')
+  return data
+}
+
+export function getMembers(session, search = '', active = 'true') {
+  const params = new URLSearchParams({ active })
+  if (search) params.set('search', search)
+  return authorizedRequest(`/members/?${params}`, session)
+}
+
+export function createMember(session, member) {
+  return authorizedRequest('/members/', session, { method: 'POST', body: JSON.stringify(member) })
+}
+
+export function deactivateMember(session, id) {
+  return authorizedRequest(`/members/${id}/`, session, { method: 'DELETE' })
+}

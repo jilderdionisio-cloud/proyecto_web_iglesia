@@ -1,20 +1,21 @@
-import { useState } from 'react'
-import { login, requestPasswordReset } from './api'
+import { useEffect, useState } from 'react'
+import { createMember, deactivateMember, getMembers, login, requestPasswordReset } from './api'
 import './App.css'
 
 const savedSession = JSON.parse(localStorage.getItem('church_session') || 'null')
 
+function Members({ session }) {
+  const [members, setMembers] = useState([]); const [search, setSearch] = useState(''); const [status, setStatus] = useState('true'); const [loading, setLoading] = useState(true); const [message, setMessage] = useState(''); const [form, setForm] = useState({ first_name: '', last_name: '', email: '', phone: '' })
+  async function loadMembers() { setLoading(true); try { setMembers(await getMembers(session, search, status)); setMessage('') } catch (error) { setMessage(error.message) } finally { setLoading(false) } }
+  useEffect(() => { loadMembers() }, [status]) // eslint-disable-line react-hooks/exhaustive-deps
+  async function handleCreate(event) { event.preventDefault(); try { await createMember(session, form); setForm({ first_name: '', last_name: '', email: '', phone: '' }); setMessage('Miembro registrado correctamente.'); loadMembers() } catch (error) { setMessage(error.message) } }
+  async function handleDeactivate(id) { if (!window.confirm('¿Deseas desactivar este miembro? El registro se conservará.')) return; try { await deactivateMember(session, id); setMessage('Miembro desactivado.'); loadMembers() } catch (error) { setMessage(error.message) } }
+  return <section className="module"><header className="module-header"><p className="eyebrow">RF-02 · Gestión de miembros</p><h1>Miembros</h1></header><div className="member-layout"><form className="member-form" onSubmit={handleCreate}><h2>Registrar miembro</h2><label>Nombres<input required value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></label><label>Apellidos<input required value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></label><label>Correo electrónico<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label><label>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label><button className="primary" type="submit">Guardar miembro</button></form><div className="member-list"><div className="filters"><input aria-label="Buscar miembro" placeholder="Buscar por nombre, correo o teléfono" value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && loadMembers()} /><button onClick={loadMembers}>Buscar</button><select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filtrar estado"><option value="true">Activos</option><option value="false">Inactivos</option></select></div>{message && <p className="message" role="status">{message}</p>}{loading ? <p>Cargando miembros…</p> : <div className="table-wrap"><table><thead><tr><th>Nombre</th><th>Contacto</th><th>Estado</th><th>Acción</th></tr></thead><tbody>{members.length ? members.map((member) => <tr key={member.id}><td>{member.full_name}</td><td>{member.email || member.phone || 'Sin datos'}</td><td><span className={`badge ${member.is_active ? 'active-badge' : ''}`}>{member.is_active ? 'Activo' : 'Inactivo'}</span></td><td>{member.is_active && <button className="danger-button" onClick={() => handleDeactivate(member.id)}>Desactivar</button>}</td></tr>) : <tr><td colSpan="4">No hay miembros para este filtro.</td></tr>}</tbody></table></div>}</div></div></section>
+}
+
 function Dashboard({ session, onLogout }) {
-  const cards = [['Miembros activos', '—'], ['Próximos eventos', '—'], ['Asistencia semanal', '—'], ['Ministerios', '—']]
-  return <div className="shell">
-    <aside className="sidebar"><div className="brand">IG<span>•</span>Gestión</div><nav aria-label="Navegación principal">
-      <a className="active" href="#inicio">Inicio</a><a href="#miembros">Miembros</a><a href="#asistencias">Asistencias</a><a href="#eventos">Eventos</a><a href="#ministerios">Ministerios</a><a href="#donaciones">Donaciones</a><a href="#anuncios">Comunicados</a><a href="#reportes">Reportes</a>
-    </nav></aside>
-    <main className="dashboard" id="inicio"><header className="topbar"><div><p className="eyebrow">Panel de control</p><h1>Bienvenido, {session.user.first_name || session.user.email}</h1></div><div className="user-menu"><span>{session.user.role}</span><button onClick={onLogout}>Cerrar sesión</button></div></header>
-      <section className="metrics" aria-label="Resumen de la iglesia">{cards.map(([label, value]) => <article className="metric" key={label}><p>{label}</p><strong>{value}</strong><small>Se mostrará al registrar datos</small></article>)}</section>
-      <section className="empty-panel"><h2>Comienza a organizar tu iglesia</h2><p>La autenticación y los roles ya están configurados. El siguiente avance incorporará miembros, eventos y los indicadores reales del dashboard.</p></section>
-    </main>
-  </div>
+  const [section, setSection] = useState('dashboard'); const cards = [['Miembros activos', '—'], ['Próximos eventos', '—'], ['Asistencia semanal', '—'], ['Ministerios', '—']]; const nav = [['dashboard', 'Inicio'], ['members', 'Miembros'], ['attendance', 'Asistencias'], ['events', 'Eventos'], ['ministries', 'Ministerios'], ['donations', 'Donaciones'], ['announcements', 'Comunicados'], ['reports', 'Reportes']]
+  return <div className="shell"><aside className="sidebar"><div className="brand">IG<span>•</span>Gestión</div><nav aria-label="Navegación principal">{nav.map(([key, label]) => <button key={key} className={section === key ? 'active' : ''} onClick={() => setSection(key)}>{label}</button>)}</nav></aside><main className="dashboard">{section === 'members' ? <Members session={session} /> : <><header className="topbar"><div><p className="eyebrow">Panel de control</p><h1>Bienvenido, {session.user.first_name || session.user.email}</h1></div><div className="user-menu"><span>{session.user.role}</span><button onClick={onLogout}>Cerrar sesión</button></div></header><section className="metrics" aria-label="Resumen de la iglesia">{cards.map(([label, value]) => <article className="metric" key={label}><p>{label}</p><strong>{value}</strong><small>Se mostrará al registrar datos</small></article>)}</section><section className="empty-panel"><h2>Comienza a organizar tu iglesia</h2><p>La autenticación y los roles ya están configurados. Continúa registrando miembros para alimentar los indicadores del dashboard.</p></section></>}</main></div>
 }
 
 function Login({ onLogin }) {
@@ -24,11 +25,5 @@ function Login({ onLogin }) {
   return <main className="login-page"><section className="login-card" aria-labelledby="login-title"><div className="brand">IG<span>•</span>Gestión</div><p className="eyebrow">Sistema Web de Gestión de Iglesia</p><h1 id="login-title">Inicia sesión</h1><p className="muted">Accede con el correo y la contraseña proporcionados por tu administrador.</p><form onSubmit={handleSubmit}><label>Correo electrónico<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></label><label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" /></label>{message && <p className="message" role="status">{message}</p>}<button className="primary" type="submit" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar'}</button><button className="link-button" type="button" onClick={handleRecovery}>¿Olvidaste tu contraseña?</button></form></section></main>
 }
 
-function App() {
-  const [session, setSession] = useState(savedSession)
-  function handleLogin(data) { localStorage.setItem('church_session', JSON.stringify(data)); setSession(data) }
-  function handleLogout() { localStorage.removeItem('church_session'); setSession(null) }
-  return session ? <Dashboard session={session} onLogout={handleLogout} /> : <Login onLogin={handleLogin} />
-}
-
+function App() { const [session, setSession] = useState(savedSession); function handleLogin(data) { localStorage.setItem('church_session', JSON.stringify(data)); setSession(data) } function handleLogout() { localStorage.removeItem('church_session'); setSession(null) } return session ? <Dashboard session={session} onLogout={handleLogout} /> : <Login onLogin={handleLogin} /> }
 export default App
