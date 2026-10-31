@@ -7,7 +7,7 @@ Este documento se actualiza por etapa. Los requisitos no marcados como terminado
 | RF-01 Usuarios | En progreso | Usuario por correo, roles, JWT, cierre de sesión y recuperación ya implementados. Falta administración visual de usuarios y pruebas de autorización por módulo. |
 | RF-02 Miembros | En progreso | API CRUD, búsqueda, filtros y desactivación lógica implementadas. Falta interfaz de tabla y formulario. |
 | RF-03 Asistencia | Pendiente | Sesiones de actividad, registros y reportes por periodo. |
-| RF-04 Eventos | Pendiente | CRUD, cancelación y calendario. |
+| RF-04 Eventos | En progreso | API CRUD, responsables, cancelación y consulta de próximos eventos implementadas. Falta calendario e interfaz. |
 | RF-05 Ministerios | Pendiente | Ministerios, coordinadores e integrantes. |
 | RF-06 Donaciones | Pendiente | Ingresos, aportaciones anónimas y permisos financieros. |
 | RF-07 Comunicados | Pendiente | CRUD y avisos visibles. |
