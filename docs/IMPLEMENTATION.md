@@ -5,8 +5,8 @@ Este documento se actualiza por etapa. Los requisitos no marcados como terminado
 | Requisito | Estado | Alcance de la primera versión |
 | --- | --- | --- |
 | RF-01 Usuarios | En progreso | Usuario por correo, roles, JWT, cierre de sesión y recuperación ya implementados. Falta administración visual de usuarios y pruebas de autorización por módulo. |
-| RF-02 Miembros | En progreso | API CRUD, búsqueda, filtros y desactivación lógica implementadas. Falta interfaz de tabla y formulario. |
-| RF-03 Asistencia | Pendiente | Sesiones de actividad, registros y reportes por periodo. |
+| RF-02 Miembros | En progreso | API CRUD, búsqueda, filtros, desactivación lógica, tabla y formulario implementados. |
+| RF-03 Asistencia | En progreso | Sesiones por evento/fecha, lista de miembros activos, marcado presente/ausente, historial, filtros y resúmenes semanal/mensual implementados en API e interfaz. Falta reporte exportable. |
 | RF-04 Eventos | En progreso | API CRUD, responsables, cancelación y consulta de próximos eventos implementadas. Falta calendario e interfaz. |
 | RF-05 Ministerios | Pendiente | Ministerios, coordinadores e integrantes. |
 | RF-06 Donaciones | Pendiente | Ingresos, aportaciones anónimas y permisos financieros. |
@@ -26,5 +26,9 @@ Este documento se actualiza por etapa. Los requisitos no marcados como terminado
 | GET/PATCH | `/api/auth/me/` | Autenticado | Consulta o actualiza el perfil propio. |
 | POST | `/api/auth/password-reset/` | Público | Solicita recuperación de contraseña. |
 | POST | `/api/auth/password-reset/confirm/` | Público | Confirma una nueva contraseña. |
+| GET/POST | `/api/attendance-sessions/` | Roles operativos | Consulta o crea una lista por evento y fecha. |
+| PUT | `/api/attendance-sessions/{id}/records/` | Roles operativos | Guarda presencia o ausencia de miembros. |
+| GET | `/api/attendance-history/` | Roles operativos | Historial filtrable por `event`, `date` y `member`. |
+| GET | `/api/attendance-history/summary/?period=week|month` | Roles operativos | Totales semanales o mensuales. |
 
 Los contratos de miembros, eventos, asistencias, ministerios, donaciones, comunicados, reportes y configuración se añadirán antes de implementar cada módulo para mantener el frontend y el backend alineados.

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createMember, deactivateMember, getMembers, login, requestPasswordReset } from './api'
+import Attendance from './Attendance'
 import './App.css'
 
 const savedSession = JSON.parse(localStorage.getItem('church_session') || 'null')
@@ -15,7 +16,7 @@ function Members({ session }) {
 
 function Dashboard({ session, onLogout }) {
   const [section, setSection] = useState('dashboard'); const cards = [['Miembros activos', '—'], ['Próximos eventos', '—'], ['Asistencia semanal', '—'], ['Ministerios', '—']]; const nav = [['dashboard', 'Inicio'], ['members', 'Miembros'], ['attendance', 'Asistencias'], ['events', 'Eventos'], ['ministries', 'Ministerios'], ['donations', 'Donaciones'], ['announcements', 'Comunicados'], ['reports', 'Reportes']]
-  return <div className="shell"><aside className="sidebar"><div className="brand">IG<span>•</span>Gestión</div><nav aria-label="Navegación principal">{nav.map(([key, label]) => <button key={key} className={section === key ? 'active' : ''} onClick={() => setSection(key)}>{label}</button>)}</nav></aside><main className="dashboard">{section === 'members' ? <Members session={session} /> : <><header className="topbar"><div><p className="eyebrow">Panel de control</p><h1>Bienvenido, {session.user.first_name || session.user.email}</h1></div><div className="user-menu"><span>{session.user.role}</span><button onClick={onLogout}>Cerrar sesión</button></div></header><section className="metrics" aria-label="Resumen de la iglesia">{cards.map(([label, value]) => <article className="metric" key={label}><p>{label}</p><strong>{value}</strong><small>Se mostrará al registrar datos</small></article>)}</section><section className="empty-panel"><h2>Comienza a organizar tu iglesia</h2><p>La autenticación y los roles ya están configurados. Continúa registrando miembros para alimentar los indicadores del dashboard.</p></section></>}</main></div>
+  return <div className="shell"><aside className="sidebar"><div className="brand">IG<span>•</span>Gestión</div><nav aria-label="Navegación principal">{nav.map(([key, label]) => <button key={key} className={section === key ? 'active' : ''} onClick={() => setSection(key)}>{label}</button>)}</nav></aside><main className="dashboard">{section === 'members' ? <Members session={session} /> : section === 'attendance' ? <Attendance session={session} /> : <><header className="topbar"><div><p className="eyebrow">Panel de control</p><h1>Bienvenido, {session.user.first_name || session.user.email}</h1></div><div className="user-menu"><span>{session.user.role}</span><button onClick={onLogout}>Cerrar sesión</button></div></header><section className="metrics" aria-label="Resumen de la iglesia">{cards.map(([label, value]) => <article className="metric" key={label}><p>{label}</p><strong>{value}</strong><small>Se mostrará al registrar datos</small></article>)}</section><section className="empty-panel"><h2>Comienza a organizar tu iglesia</h2><p>La autenticación y los roles ya están configurados. Continúa registrando miembros para alimentar los indicadores del dashboard.</p></section></>}</main></div>
 }
 
 function Login({ onLogin }) {

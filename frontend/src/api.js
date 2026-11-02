@@ -45,3 +45,24 @@ export function createMember(session, member) {
 export function deactivateMember(session, id) {
   return authorizedRequest(`/members/${id}/`, session, { method: 'DELETE' })
 }
+
+export function getEvents(session) {
+  return authorizedRequest('/events/?status=scheduled', session)
+}
+
+export function getAttendanceSessions(session, filters = {}) {
+  const params = new URLSearchParams(filters)
+  return authorizedRequest(`/attendance-sessions/?${params}`, session)
+}
+
+export function createAttendanceSession(session, data) {
+  return authorizedRequest('/attendance-sessions/', session, { method: 'POST', body: JSON.stringify(data) })
+}
+
+export function updateAttendanceRecords(session, id, records) {
+  return authorizedRequest(`/attendance-sessions/${id}/records/`, session, { method: 'PUT', body: JSON.stringify({ records }) })
+}
+
+export function getAttendanceSummary(session, period) {
+  return authorizedRequest(`/attendance-history/summary/?period=${period}`, session)
+}
