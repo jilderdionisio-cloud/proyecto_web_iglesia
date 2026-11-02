@@ -8,7 +8,7 @@ Este documento se actualiza por etapa. Los requisitos no marcados como terminado
 | RF-02 Miembros | En progreso | API CRUD, búsqueda, filtros, desactivación lógica, tabla y formulario implementados. |
 | RF-03 Asistencia | En progreso | Sesiones por evento/fecha, lista de miembros activos, marcado presente/ausente, historial, filtros y resúmenes semanal/mensual implementados en API e interfaz. Falta reporte exportable. |
 | RF-04 Eventos | En progreso | API CRUD, responsables, cancelación y consulta de próximos eventos implementadas. Falta calendario e interfaz. |
-| RF-05 Ministerios | Pendiente | Ministerios, coordinadores e integrantes. |
+| RF-05 Ministerios | En progreso | API CRUD de ministerios, asignación de coordinadores y vinculación/desvinculación de integrantes implementadas. Falta interfaz. |
 | RF-06 Donaciones | Pendiente | Ingresos, aportaciones anónimas y permisos financieros. |
 | RF-07 Comunicados | Pendiente | CRUD y avisos visibles. |
 | RF-08 Dashboard | En progreso | Estructura visual inicial; métricas reales dependen de los módulos de datos. |
@@ -30,5 +30,7 @@ Este documento se actualiza por etapa. Los requisitos no marcados como terminado
 | PUT | `/api/attendance-sessions/{id}/records/` | Roles operativos | Guarda presencia o ausencia de miembros. |
 | GET | `/api/attendance-history/` | Roles operativos | Historial filtrable por `event`, `date` y `member`. |
 | GET | `/api/attendance-history/summary/?period=week|month` | Roles operativos | Totales semanales o mensuales. |
+| GET/POST | `/api/ministries/` | Roles operativos | Consulta o crea ministerios con coordinador. |
+| POST/DELETE | `/api/ministries/{id}/members/` | Roles operativos | Vincula o desvincula miembros activos. |
 
 Los contratos de miembros, eventos, asistencias, ministerios, donaciones, comunicados, reportes y configuración se añadirán antes de implementar cada módulo para mantener el frontend y el backend alineados.
