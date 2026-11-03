@@ -51,6 +51,8 @@ export function activateMember(session, id) { return authorizedRequest(`/members
 export function getEvents(session) {
   return authorizedRequest('/events/?status=scheduled', session)
 }
+export function updateEvent(session, id, event) { return authorizedRequest(`/events/${id}/`, session, { method: 'PATCH', body: JSON.stringify(event) }) }
+export function cancelEvent(session, id, reason = '') { return authorizedRequest(`/events/${id}/cancel/`, session, { method: 'POST', body: JSON.stringify({ reason }) }) }
 
 export function getAttendanceSessions(session, filters = {}) {
   const params = new URLSearchParams(filters)
