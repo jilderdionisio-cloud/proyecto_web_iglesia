@@ -70,6 +70,7 @@ export function updateAttendanceRecords(session, id, records) {
 export function getAttendanceSummary(session, period) {
   return authorizedRequest(`/attendance-history/summary/?period=${period}`, session)
 }
+export function getAttendanceHistory(session, filters = {}) { return authorizedRequest(`/attendance-history/?${new URLSearchParams(filters)}`, session) }
 
 export function apiGet(session, path) { return authorizedRequest(path, session) }
 export function apiPost(session, path, body) { return authorizedRequest(path, session, { method: 'POST', body: JSON.stringify(body) }) }
