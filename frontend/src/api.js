@@ -45,6 +45,8 @@ export function createMember(session, member) {
 export function deactivateMember(session, id) {
   return authorizedRequest(`/members/${id}/`, session, { method: 'DELETE' })
 }
+export function updateMember(session, id, member) { return authorizedRequest(`/members/${id}/`, session, { method: 'PATCH', body: JSON.stringify(member) }) }
+export function activateMember(session, id) { return authorizedRequest(`/members/${id}/activate/`, session, { method: 'POST', body: '{}' }) }
 
 export function getEvents(session) {
   return authorizedRequest('/events/?status=scheduled', session)
