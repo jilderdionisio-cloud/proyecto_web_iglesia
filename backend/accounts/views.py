@@ -13,15 +13,15 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User
 from .permissions import CanManageUsers
 from .serializers import (
-    LoginSerializer, PasswordResetConfirmSerializer, RegisterSerializer, UserSerializer,
+    AdminUserSerializer, LoginSerializer, PasswordResetConfirmSerializer, RegisterSerializer, UserSerializer,
 )
 
 
 class RegisterView(APIView):
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [CanManageUsers]
 
     def post(self, request):
-        serializer = RegisterSerializer(data=request.data)
+        serializer = AdminUserSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         return Response(UserSerializer(user).data, status=status.HTTP_201_CREATED)
@@ -82,6 +82,6 @@ class PasswordResetConfirmView(APIView):
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset=User.objects.all().order_by('email')
-    serializer_class=UserSerializer
+    serializer_class=AdminUserSerializer
     permission_classes=(CanManageUsers,)
-    http_method_names=('get','patch','head','options')
+    http_method_names=('get','post','patch','head','options')
