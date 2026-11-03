@@ -4,16 +4,16 @@ Este documento se actualiza por etapa. Los requisitos no marcados como terminado
 
 | Requisito | Estado | Alcance de la primera versión |
 | --- | --- | --- |
-| RF-01 Usuarios | En progreso | Usuario por correo, roles, JWT, cierre de sesión y recuperación ya implementados. Falta administración visual de usuarios y pruebas de autorización por módulo. |
-| RF-02 Miembros | En progreso | API CRUD, búsqueda, filtros, desactivación lógica, tabla y formulario implementados. |
-| RF-03 Asistencia | En progreso | Sesiones por evento/fecha, lista de miembros activos, marcado presente/ausente, historial, filtros y resúmenes semanal/mensual implementados en API e interfaz. Falta reporte exportable. |
-| RF-04 Eventos | En progreso | API CRUD, responsables, cancelación y consulta de próximos eventos implementadas. Falta calendario e interfaz. |
-| RF-05 Ministerios | En progreso | API CRUD de ministerios, asignación de coordinadores y vinculación/desvinculación de integrantes implementadas. Falta interfaz. |
-| RF-06 Donaciones | Pendiente | Ingresos, aportaciones anónimas y permisos financieros. |
-| RF-07 Comunicados | Pendiente | CRUD y avisos visibles. |
-| RF-08 Dashboard | En progreso | Estructura visual inicial; métricas reales dependen de los módulos de datos. |
-| RF-09 Reportes | Pendiente | Consultas y exportación PDF/Excel. |
-| RF-10 Iglesia | Pendiente | Perfil institucional y datos de contacto. |
+| RF-01 Usuarios | Parcial | JWT, roles, administración API y cierre de sesión integrado. Falta pantalla administrativa de usuarios y pruebas de matriz completa. |
+| RF-02 Miembros | Parcial | API CRUD, búsqueda, filtros, desactivación, tabla y formulario. Falta edición/reactivación visual. |
+| RF-03 Asistencia | Parcial | Sesiones, marcado, filtros, historial y resumen por periodo. Reporte de asistencia disponible vía API. |
+| RF-04 Eventos | Parcial | API completa y formulario React básico. Falta una vista calendario avanzada y edición/cancelación visual. |
+| RF-05 Ministerios | Parcial | API de ministerios, integrantes y actividades; formulario React básico. Falta gestión visual de integrantes y actividades. |
+| RF-06 Donaciones | Parcial | API, anonimato, restricciones financieras, consultas por periodo y formulario React. Falta edición y visualización por periodo en UI. |
+| RF-07 Comunicados | Parcial | CRUD API y formulario/listado React básico. Falta edición y bloque público de avisos. |
+| RF-08 Dashboard | Parcial | Estadísticas reales de miembros, eventos, ministerios, asistencia e ingresos según permiso; gráfica simple. |
+| RF-09 Reportes | Parcial | Rutas PDF/Excel para miembros, asistencia, ministerios e ingresos; falta interfaz autenticada de descarga y formato avanzado. |
+| RF-10 Iglesia | Parcial | Perfil institucional API y formulario. Falta carga de logotipo en React. |
 
 ## Contratos iniciales de API
 

@@ -26,3 +26,11 @@ class MinistryMembership(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=('ministry', 'member'), name='unique_ministry_member')]
+
+
+class MinistryActivity(models.Model):
+    ministry = models.ForeignKey(Ministry, on_delete=models.CASCADE, related_name='activities')
+    title = models.CharField(max_length=160)
+    scheduled_at = models.DateTimeField()
+    description = models.TextField(blank=True)
+    class Meta: ordering = ('scheduled_at',)

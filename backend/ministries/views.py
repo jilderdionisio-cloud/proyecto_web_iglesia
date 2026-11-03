@@ -4,8 +4,8 @@ from rest_framework.response import Response
 
 from accounts.models import User
 from accounts.permissions import HasRole
-from .models import Ministry, MinistryMembership
-from .serializers import MemberAssignmentSerializer, MinistrySerializer
+from .models import Ministry, MinistryMembership, MinistryActivity
+from .serializers import MemberAssignmentSerializer, MinistrySerializer, MinistryActivitySerializer
 
 
 class CanManageMinistries(HasRole):
@@ -36,3 +36,10 @@ class MinistryViewSet(viewsets.ModelViewSet):
         if not deleted:
             return Response({'detail': 'El miembro no pertenece a este ministerio.'}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+class MinistryActivityViewSet(viewsets.ModelViewSet):
+    serializer_class=MinistryActivitySerializer; permission_classes=(CanManageMinistries,)
+    def get_queryset(self):
+        qs=MinistryActivity.objects.select_related('ministry')
+        ministry=self.request.query_params.get('ministry')
+        return qs.filter(ministry_id=ministry) if ministry else qs

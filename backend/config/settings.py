@@ -47,6 +47,10 @@ INSTALLED_APPS = [
     'events',
     'attendance',
     'ministries',
+    'finance',
+    'announcements',
+    'church',
+    'reporting',
 ]
 
 MIDDLEWARE = [
@@ -150,14 +154,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-# Email
-# https://docs.djangoproject.com/en/6.1/topics/email/#topic-email-configuration
-
-MAILERS = {
-    'default': {
-        'BACKEND': 'django.core.mail.backends.console.EmailBackend',
-    },
-}
-
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@iglesia.local')
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+EMAIL_BACKEND = os.getenv('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')

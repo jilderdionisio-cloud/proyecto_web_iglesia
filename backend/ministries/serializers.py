@@ -3,6 +3,7 @@ from rest_framework import serializers
 from accounts.models import User
 from members.models import Member
 from .models import Ministry, MinistryMembership
+from .models import MinistryActivity
 
 
 class MinistryMemberSerializer(serializers.ModelSerializer):
@@ -31,3 +32,6 @@ class MinistrySerializer(serializers.ModelSerializer):
 
 class MemberAssignmentSerializer(serializers.Serializer):
     member = serializers.PrimaryKeyRelatedField(queryset=Member.objects.filter(is_active=True))
+
+class MinistryActivitySerializer(serializers.ModelSerializer):
+    class Meta: model=MinistryActivity; fields=('id','ministry','title','scheduled_at','description'); read_only_fields=('id',)

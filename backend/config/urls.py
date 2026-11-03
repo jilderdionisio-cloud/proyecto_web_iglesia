@@ -24,5 +24,9 @@ urlpatterns = [
     path('api/', include('events.urls')),
     path('api/', include('attendance.urls')),
     path('api/', include('ministries.urls')),
+    path('api/', include('finance.urls')),
+    path('api/', include('announcements.urls')),
+    path('api/', include('church.urls')),
+    path('api/', include('reporting.urls')),
     path('api/', include('core.urls')),
 ]

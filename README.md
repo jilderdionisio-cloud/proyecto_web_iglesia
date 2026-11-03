@@ -35,3 +35,11 @@ npm run dev
 ```
 
 Vite sirve React en `http://localhost:5173` y redirige las peticiones `/api` al backend durante el desarrollo.
+
+## Variables y base de datos
+
+Copie `backend/.env.example` y configure `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST` y `POSTGRES_PORT` para usar PostgreSQL. Sin estas variables, Django usa SQLite únicamente como respaldo local de desarrollo.
+
+## Módulos disponibles
+
+La primera versión incorpora autenticación JWT, miembros, eventos, asistencia, ministerios y actividades, donaciones, comunicados, configuración institucional, tablero y rutas de reporte PDF/Excel. Ejecute las pruebas con `cd backend; .\.venv\Scripts\python.exe manage.py test` y compile la interfaz con `cd frontend; npm run build`.

@@ -6,10 +6,12 @@ from django.utils.http import urlsafe_base64_encode
 from rest_framework import permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework import viewsets
 from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import User
+from .permissions import CanManageUsers
 from .serializers import (
     LoginSerializer, PasswordResetConfirmSerializer, RegisterSerializer, UserSerializer,
 )
@@ -77,3 +79,9 @@ class PasswordResetConfirmView(APIView):
         serializer.validated_data['user'].set_password(serializer.validated_data['password'])
         serializer.validated_data['user'].save(update_fields=['password'])
         return Response({'detail': 'Contraseña actualizada correctamente.'})
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset=User.objects.all().order_by('email')
+    serializer_class=UserSerializer
+    permission_classes=(CanManageUsers,)
+    http_method_names=('get','patch','head','options')
