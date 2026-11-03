@@ -76,3 +76,8 @@ export function apiGet(session, path) { return authorizedRequest(path, session) 
 export function apiPost(session, path, body) { return authorizedRequest(path, session, { method: 'POST', body: JSON.stringify(body) }) }
 export function apiPut(session, path, body) { return authorizedRequest(path, session, { method: 'PUT', body: JSON.stringify(body) }) }
 export async function logout(session) { return authorizedRequest('/auth/logout/', session, { method: 'POST', body: JSON.stringify({ refresh: session.refresh }) }) }
+export async function downloadReport(session, path, filename) {
+  const response = await fetch(`${API_URL}${path}`, { headers: { Authorization: `Bearer ${session.access}` } })
+  if (!response.ok) throw new Error('No fue posible generar el reporte.')
+  const url = URL.createObjectURL(await response.blob()); const link = document.createElement('a'); link.href = url; link.download = filename; link.click(); URL.revokeObjectURL(url)
+}

@@ -11,23 +11,36 @@ from events.models import Event
 from ministries.models import Ministry
 from attendance.models import AttendanceRecord
 from finance.models import Donation
+from announcements.models import Announcement
 
 class OperationalAccess(HasRole): allowed_roles=(User.Role.ADMINISTRATOR,User.Role.PASTOR,User.Role.SECRETARY,User.Role.COORDINATOR)
 class DashboardView(APIView):
     permission_classes=(OperationalAccess,)
     def get(self,request):
-        data={'active_members':Member.objects.filter(is_active=True).count(),'upcoming_events':Event.objects.filter(starts_at__gte=timezone.now(),status='scheduled').count(),'ministries':Ministry.objects.filter(is_active=True).count(),'attendance':AttendanceRecord.objects.values('status').annotate(count=Count('id'))}
+        start,end=request.query_params.get('start'),request.query_params.get('end')
+        attendance=AttendanceRecord.objects.all()
+        if start: attendance=attendance.filter(session__date__gte=start)
+        if end: attendance=attendance.filter(session__date__lte=end)
+        data={'active_members':Member.objects.filter(is_active=True).count(),'upcoming_events':Event.objects.filter(starts_at__gte=timezone.now(),status='scheduled').count(),'ministries':Ministry.objects.filter(is_active=True).count(),'announcements':Announcement.objects.filter(is_published=True).count(),'attendance':attendance.values('status').annotate(count=Count('id'))}
         if request.user.is_superuser or request.user.role in (User.Role.ADMINISTRATOR,User.Role.TREASURER): data['income']=Donation.objects.aggregate(total=Sum('amount'))['total'] or 0
         return Response(data)
 class ReportView(APIView):
     permission_classes=(OperationalAccess,)
     def get(self,request,kind,format):
+        start,end=request.query_params.get('start'),request.query_params.get('end')
         if kind=='members': rows=[['Nombre','Correo','Activo']]+[[str(x),x.email,'Sí' if x.is_active else 'No'] for x in Member.objects.all()]
-        elif kind=='attendance': rows=[['Miembro','Estado']]+[[str(x.member),x.status] for x in AttendanceRecord.objects.select_related('member')]
+        elif kind=='attendance':
+            qs=AttendanceRecord.objects.select_related('member','session__event')
+            if start: qs=qs.filter(session__date__gte=start)
+            if end: qs=qs.filter(session__date__lte=end)
+            rows=[['Evento','Fecha','Miembro','Estado']]+[[x.session.event.title,str(x.session.date),str(x.member),x.status] for x in qs]
         elif kind=='ministries': rows=[['Ministerio','Integrantes']]+[[x.name,x.members.count()] for x in Ministry.objects.all()]
         elif kind=='income':
             if not (request.user.is_superuser or request.user.role in (User.Role.ADMINISTRATOR,User.Role.TREASURER)): return Response({'detail':'Sin permiso financiero.'},status=403)
-            rows=[['Fecha','Monto','Concepto']]+[[str(x.received_at),str(x.amount),x.concept] for x in Donation.objects.all()]
+            qs=Donation.objects.all()
+            if start: qs=qs.filter(received_at__gte=start)
+            if end: qs=qs.filter(received_at__lte=end)
+            rows=[['Fecha','Monto','Concepto']]+[[str(x.received_at),str(x.amount),x.concept] for x in qs]
         else: return Response({'detail':'Reporte no válido.'},status=404)
         if format=='xlsx':
             import xlsxwriter
