@@ -9,7 +9,7 @@ from .serializers import MemberAssignmentSerializer, MinistrySerializer, Ministr
 
 
 class CanManageMinistries(HasRole):
-    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.PASTOR, User.Role.SECRETARY, User.Role.COORDINATOR)
+    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.COORDINATOR)
 
 
 class MinistryViewSet(viewsets.ModelViewSet):
@@ -18,6 +18,8 @@ class MinistryViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = Ministry.objects.select_related('coordinator').prefetch_related('memberships__member')
+        if self.request.user.role == User.Role.COORDINATOR and not self.request.user.is_superuser:
+            queryset = queryset.filter(coordinator=self.request.user)
         active = self.request.query_params.get('active')
         if active in ('true', 'false'):
             queryset = queryset.filter(is_active=active == 'true')
@@ -41,5 +43,7 @@ class MinistryActivityViewSet(viewsets.ModelViewSet):
     serializer_class=MinistryActivitySerializer; permission_classes=(CanManageMinistries,)
     def get_queryset(self):
         qs=MinistryActivity.objects.select_related('ministry')
+        if self.request.user.role == User.Role.COORDINATOR and not self.request.user.is_superuser:
+            qs=qs.filter(ministry__coordinator=self.request.user)
         ministry=self.request.query_params.get('ministry')
         return qs.filter(ministry_id=ministry) if ministry else qs
