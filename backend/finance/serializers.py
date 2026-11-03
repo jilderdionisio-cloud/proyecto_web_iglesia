@@ -10,6 +10,9 @@ class DonationSerializer(serializers.ModelSerializer):
     def get_display_donor(self, obj):
         return 'Anónimo' if obj.is_anonymous else (obj.donor_name or 'Sin nombre')
     def validate(self, attrs):
+        amount = attrs.get('amount', getattr(self.instance, 'amount', None))
+        if amount is not None and amount <= 0:
+            raise serializers.ValidationError({'amount': 'El monto debe ser mayor a cero.'})
         if attrs.get('is_anonymous'):
             attrs['donor_name'] = ''
         return attrs

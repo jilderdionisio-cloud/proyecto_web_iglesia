@@ -4,7 +4,8 @@ import Attendance from './Attendance'
 import Events from './Events'
 import Ministries from './Ministries'
 import Announcements from './Announcements'
-import { ChurchSettings, CollectionModule, DashboardHome } from './SimpleModules'
+import Donations from './Donations'
+import { ChurchSettings, DashboardHome } from './SimpleModules'
 import './App.css'
 
 const savedSession = JSON.parse(localStorage.getItem('church_session') || 'null')
@@ -22,7 +23,7 @@ function Users({ session }) { const [users,setUsers]=useState([]);const [message
 
 function Dashboard({ session, onLogout }) {
   const [section, setSection] = useState('dashboard'); const nav = [['dashboard', 'Inicio'], ...(session.user.role==='administrator'?[['users','Usuarios']]:[]), ['members', 'Miembros'], ['attendance', 'Asistencias'], ['events', 'Eventos'], ['ministries', 'Ministerios'], ['donations', 'Donaciones'], ['announcements', 'Comunicados'], ['reports', 'Reportes'], ['settings','Configuración']]
-  const modules={events:<Events session={session}/>,ministries:<Ministries session={session}/>,donations:<CollectionModule session={session} title="Donaciones" endpoint="/donations/" fields={[{key:'received_at',label:'Fecha',type:'date',required:true},{key:'amount',label:'Monto',type:'number',required:true},{key:'concept',label:'Concepto',required:true},{key:'method',label:'Método',type:'select',options:[{value:'cash',label:'Efectivo'},{value:'transfer',label:'Transferencia'},{value:'card',label:'Tarjeta'}]}]} detail={x=>`$${x.amount} · ${x.received_at}`}/>,announcements:<Announcements session={session}/>,settings:<ChurchSettings session={session}/>}
+  const modules={events:<Events session={session}/>,ministries:<Ministries session={session}/>,donations:<Donations session={session}/>,announcements:<Announcements session={session}/>,settings:<ChurchSettings session={session}/>}
   async function safeLogout(){try{await logout(session)}catch{} onLogout()}
   return <div className="shell"><aside className="sidebar"><div className="brand">IG<span>•</span>Gestión</div><nav aria-label="Navegación principal">{nav.map(([key, label]) => <button key={key} className={section === key ? 'active' : ''} onClick={() => setSection(key)}>{label}</button>)}</nav></aside><main className="dashboard"><div className="user-menu"><span>{session.user.role}</span><button onClick={safeLogout}>Cerrar sesión</button></div>{section==='dashboard'?<DashboardHome session={session}/>:section==='users'?<Users session={session}/>:section==='members'?<Members session={session}/>:section==='attendance'?<Attendance session={session}/>:section==='reports'?<section className="module"><h1>Reportes</h1><p>Exporta información disponible:</p><p><a href="/api/reports/members.xlsx/">Miembros Excel</a> · <a href="/api/reports/attendance.pdf/">Asistencias PDF</a> · <a href="/api/reports/ministries.xlsx/">Ministerios Excel</a></p></section>:modules[section]}</main></div>
 }
