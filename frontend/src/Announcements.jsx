@@ -1,0 +1,10 @@
+import { useEffect, useState } from 'react'
+import { apiGet, apiPost, apiPut } from './api'
+
+export default function Announcements({ session }) {
+  const [items,setItems]=useState([]);const [form,setForm]=useState({title:'',body:'',is_published:true});const [editing,setEditing]=useState(null);const [message,setMessage]=useState('')
+  const load=()=>apiGet(session,'/announcements/').then(setItems).catch(e=>setMessage(e.message));useEffect(()=>{load()},[session])
+  async function save(e){e.preventDefault();try{if(editing)await apiPut(session,`/announcements/${editing}/`,form);else await apiPost(session,'/announcements/',form);setForm({title:'',body:'',is_published:true});setEditing(null);setMessage('Comunicado guardado.');load()}catch(err){setMessage(err.message)}}
+  async function remove(id){if(!window.confirm('¿Eliminar comunicado?'))return;try{await fetch(`/api/announcements/${id}/`,{method:'DELETE',headers:{Authorization:`Bearer ${session.access}`}});load()}catch(e){setMessage(e.message)}}
+  return <section className="module"><h1>Comunicados y anuncios</h1><div className="member-layout"><form className="member-form" onSubmit={save}><h2>{editing?'Editar':'Nuevo'} comunicado</h2><label>Título<input required value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/></label><label>Contenido<input required value={form.body} onChange={e=>setForm({...form,body:e.target.value})}/></label><label><input type="checkbox" checked={form.is_published} onChange={e=>setForm({...form,is_published:e.target.checked})}/> Publicado</label><button className="primary">Guardar</button></form><div className="member-list">{message&&<p className="message">{message}</p>}{items.map(x=><article className="announcement" key={x.id}><h2>{x.title}</h2><p>{x.body}</p><small>{x.is_published?'Publicado':'Borrador'} · {new Date(x.published_at).toLocaleDateString()}</small><p><button className="action-button" onClick={()=>{setEditing(x.id);setForm({title:x.title,body:x.body,is_published:x.is_published})}}>Editar</button><button className="danger-button" onClick={()=>remove(x.id)}>Eliminar</button></p></article>)}</div></div></section>
+}
