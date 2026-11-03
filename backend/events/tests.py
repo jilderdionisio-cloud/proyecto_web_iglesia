@@ -10,7 +10,7 @@ from .models import Event
 
 class EventApiTests(APITestCase):
     def setUp(self):
-        self.user = User.objects.create_user(email='pastor@iglesia.test', password='ClaveSegura123!', role=User.Role.PASTOR)
+        self.user = User.objects.create_user(email='secretaria@iglesia.test', password='ClaveSegura123!', role=User.Role.SECRETARY)
         self.client.force_authenticate(self.user)
 
     def test_create_and_cancel_event(self):

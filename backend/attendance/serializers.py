@@ -7,10 +7,12 @@ from .models import AttendanceRecord, AttendanceSession
 
 class AttendanceRecordSerializer(serializers.ModelSerializer):
     member_name = serializers.CharField(source='member.__str__', read_only=True)
+    event_name = serializers.CharField(source='session.event.title', read_only=True)
+    date = serializers.DateField(source='session.date', read_only=True)
 
     class Meta:
         model = AttendanceRecord
-        fields = ('id', 'member', 'member_name', 'status', 'updated_at')
+        fields = ('id', 'member', 'member_name', 'event_name', 'date', 'status', 'updated_at')
         read_only_fields = ('id', 'member_name', 'updated_at')
 
 

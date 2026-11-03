@@ -11,7 +11,7 @@ from .serializers import EventSerializer
 
 
 class CanManageEvents(HasRole):
-    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.PASTOR, User.Role.SECRETARY, User.Role.COORDINATOR)
+    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.SECRETARY)
 
 
 class EventViewSet(viewsets.ModelViewSet):

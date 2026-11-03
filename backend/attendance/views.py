@@ -15,7 +15,7 @@ from .serializers import AttendanceBulkUpdateSerializer, AttendanceRecordSeriali
 
 
 class CanManageAttendance(HasRole):
-    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.PASTOR, User.Role.SECRETARY, User.Role.COORDINATOR)
+    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.SECRETARY)
 
 
 class AttendanceSessionViewSet(viewsets.ModelViewSet):
