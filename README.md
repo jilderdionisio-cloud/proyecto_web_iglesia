@@ -40,6 +40,10 @@ Vite sirve React en `http://localhost:5173` y redirige las peticiones `/api` al 
 
 Copie `backend/.env.example` y configure `POSTGRES_DB`, `POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_HOST` y `POSTGRES_PORT` para usar PostgreSQL. Sin estas variables, Django usa SQLite únicamente como respaldo local de desarrollo.
 
+Para la presentación configure PostgreSQL antes de ejecutar migraciones. La carga de logotipos usa `backend/media/` durante desarrollo y queda disponible bajo `/media/` mientras `DJANGO_DEBUG=true`.
+
 ## Módulos disponibles
 
 La primera versión incorpora autenticación JWT, miembros, eventos, asistencia, ministerios y actividades, donaciones, comunicados, configuración institucional, tablero y rutas de reporte PDF/Excel. Ejecute las pruebas con `cd backend; .\.venv\Scripts\python.exe manage.py test` y compile la interfaz con `cd frontend; npm run build`.
+
+Los administradores crean usuarios y asignan roles. El tesorero y el administrador acceden a información financiera. Los reportes se descargan desde la aplicación con autenticación JWT.
