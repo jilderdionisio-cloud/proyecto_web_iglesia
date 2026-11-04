@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { apiGet, apiPost, apiPut } from './api'
+import { apiGet, apiPost, uploadProfile } from './api'
 
 export function DashboardHome({ session }) {
   const [data, setData] = useState(null)
@@ -16,4 +16,11 @@ export function CollectionModule({ session, title, endpoint, fields, detail }) {
   return <section className="module"><header className="module-header"><p className="eyebrow">Gestión</p><h1>{title}</h1></header><div className="member-layout"><form className="member-form" onSubmit={submit}><h2>Nuevo registro</h2>{fields.map(f=><label key={f.key}>{f.label}{f.type==='select'?<select required={f.required} value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})}>{f.options?.map(o=><option value={o.value} key={o.value}>{o.label}</option>)}</select>:<input required={f.required} type={f.type||'text'} value={form[f.key]} onChange={e=>setForm({...form,[f.key]:e.target.value})}/>}</label>)}<button className="primary">Guardar</button></form><div className="member-list">{message&&<p className="message">{message}</p>}<div className="table-wrap"><table><thead><tr><th>Registro</th><th>Detalle</th></tr></thead><tbody>{items.map(x=><tr key={x.id}><td>{x.title||x.name||x.concept}</td><td>{detail(x)}</td></tr>)}</tbody></table></div></div></div></section>
 }
 
-export function ChurchSettings({ session }) { const [form,setForm]=useState(null); const [message,setMessage]=useState(''); useEffect(()=>{apiGet(session,'/church-profile/').then(setForm).catch(e=>setMessage(e.message))},[]); if(!form)return <p>Cargando configuración…</p>; const keys=[['name','Nombre'],['address','Dirección'],['phone','Teléfono'],['email','Correo'],['regular_schedule','Horarios habituales']]; return <section className="module"><h1>Configuración de la iglesia</h1><form className="member-form" onSubmit={async e=>{e.preventDefault();try{setForm(await apiPut(session,'/church-profile/',form));setMessage('Configuración actualizada.')}catch(err){setMessage(err.message)}}}>{keys.map(([k,l])=><label key={k}>{l}<input value={form[k]||''} onChange={e=>setForm({...form,[k]:e.target.value})}/></label>)}<button className="primary">Guardar configuración</button>{message&&<p className="message">{message}</p>}</form></section> }
+export function ChurchSettings({ session }) {
+  const [form,setForm]=useState(null); const [logo,setLogo]=useState(null); const [message,setMessage]=useState('')
+  useEffect(()=>{apiGet(session,'/church-profile/').then(setForm).catch(e=>setMessage(e.message))},[session])
+  if(!form)return <p>Cargando configuración…</p>
+  const keys=[['name','Nombre'],['address','Dirección'],['phone','Teléfono'],['email','Correo'],['regular_schedule','Horarios habituales']]
+  async function submit(e) { e.preventDefault(); try { const data=new FormData(); keys.forEach(([k])=>data.append(k,form[k]||'')); if(logo)data.append('logo',logo); setForm(await uploadProfile(session,data)); setMessage('Configuración actualizada.') } catch(err) { setMessage(err.message) } }
+  return <section className="module"><h1>Configuración de la iglesia</h1><form className="member-form" onSubmit={submit}>{form.logo&&<img className="church-logo" src={form.logo} alt="Logotipo actual"/>}<label>Logotipo (PNG, JPEG o WebP, máximo 2 MB)<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>{const file=e.target.files[0];if(file&&file.size>2*1024*1024)setMessage('El archivo supera 2 MB.');else {setLogo(file);setMessage('')}}}/></label>{keys.map(([k,l])=><label key={k}>{l}<input value={form[k]||''} onChange={e=>setForm({...form,[k]:e.target.value})}/></label>)}<button className="primary">Guardar configuración</button>{message&&<p className="message">{message}</p>}</form></section>
+}
