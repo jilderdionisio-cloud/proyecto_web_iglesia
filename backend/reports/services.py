@@ -8,7 +8,7 @@ from django.utils import timezone
 from accounts.permissions import CanViewFinancialSummary
 from announcements.models import Announcement
 from attendance.models import AttendanceRecord, AttendanceSession
-from donations.models import Donation
+from finance.models import Donation
 from events.models import Event
 from members.models import Member
 from ministries.models import Ministry

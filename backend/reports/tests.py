@@ -11,7 +11,7 @@ from accounts.models import User
 from announcements.models import Announcement
 from attendance.models import AttendanceRecord, AttendanceSession
 from church.models import ChurchProfile
-from donations.models import Donation
+from finance.models import Donation
 from events.models import Event
 from members.models import Member
 from ministries.models import Ministry, MinistryActivity, MinistryMembership

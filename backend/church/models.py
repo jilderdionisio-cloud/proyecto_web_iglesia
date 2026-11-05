@@ -3,10 +3,10 @@ from django.db import models
 
 class ChurchProfile(models.Model):
     """Perfil institucional único: siempre es la fila con pk=1."""
-    name = models.CharField('nombre', max_length=160, default='Mi iglesia')
+    name = models.CharField('nombre', max_length=180, default='Mi Iglesia')
     description = models.TextField('descripción', blank=True)
-    logo = models.ImageField(upload_to='church/', blank=True)
-    phone = models.CharField('teléfono', max_length=30, blank=True)
+    logo = models.ImageField(upload_to='church/', blank=True, null=True)
+    phone = models.CharField('teléfono', max_length=40, blank=True)
     email = models.EmailField('correo electrónico', blank=True)
     website = models.URLField('sitio web', blank=True)
     address = models.CharField('dirección', max_length=255, blank=True)

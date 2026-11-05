@@ -34,7 +34,7 @@ class ChurchApiTests(APITestCase):
     def test_profile_is_public_to_read(self):
         response = self.client.get('/api/church/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['name'], 'Mi iglesia')
+        self.assertEqual(response.data['name'], 'Mi Iglesia')
         self.assertEqual(response.data['schedules'], [])
 
     def test_admin_updates_profile_and_it_stays_single(self):

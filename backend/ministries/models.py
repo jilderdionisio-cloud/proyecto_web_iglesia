@@ -34,7 +34,8 @@ class MinistryActivity(models.Model):
     description = models.TextField(blank=True)
     date = models.DateField('fecha')
     location = models.CharField('lugar', max_length=200, blank=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_ministry_activities')
+    # Nulo solo para actividades registradas antes de guardar al autor.
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='created_ministry_activities')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -52,7 +52,7 @@ INSTALLED_APPS = [
     'events',
     'attendance',
     'ministries',
-    'donations',
+    'finance',
     'announcements',
     'church',
     'reports',

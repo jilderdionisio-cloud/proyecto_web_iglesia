@@ -22,6 +22,17 @@ Este documento se actualiza por etapa y refleja el estado de la rama de trabajo 
 - **Producción:** los archivos de `MEDIA_ROOT` solo se sirven con `DJANGO_DEBUG=true`; en producción debe servirlos el servidor web.
 - **Frontend:** no hay pruebas automatizadas de React; las pantallas se verificaron manualmente en navegador.
 
+## Migraciones heredadas de main
+
+Las migraciones `announcements/0001`, `church/0001`, `finance/0001` y `ministries/0002` provienen de la primera versión publicada en `main` y no se modifican. Las migraciones siguientes transforman ese esquema al actual sin perder datos:
+
+- **Donaciones:** el concepto pasa a ser tipo de donación y queda en observaciones. A las anónimas se les borra el donante.
+- **Actividades de ministerio:** la fecha y hora se convierte a fecha local.
+- **Comunicados:** conservan su fecha de publicación.
+- **Iglesia:** el texto de horarios se guarda en la descripción.
+
+Una base creada con `main` se actualiza con `python manage.py migrate`.
+
 ## Decisiones de seguridad
 
 - El registro público crea una solicitud inactiva. No da acceso hasta que un administrador la aprueba y le asigna rol. El rol nunca se elige al registrarse.
