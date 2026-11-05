@@ -14,6 +14,19 @@ class AttendanceRecordSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'member_name', 'updated_at')
 
 
+class AttendanceHistorySerializer(AttendanceRecordSerializer):
+    event = serializers.IntegerField(source='session.event_id', read_only=True)
+    event_name = serializers.CharField(source='session.event.title', read_only=True)
+    date = serializers.DateField(source='session.date', read_only=True)
+    marked_by_name = serializers.SerializerMethodField()
+
+    class Meta(AttendanceRecordSerializer.Meta):
+        fields = AttendanceRecordSerializer.Meta.fields + ('event', 'event_name', 'date', 'marked_by_name')
+
+    def get_marked_by_name(self, obj):
+        return obj.marked_by.get_full_name() or obj.marked_by.email
+
+
 class AttendanceSessionSerializer(serializers.ModelSerializer):
     event_name = serializers.CharField(source='event.title', read_only=True)
     records = AttendanceRecordSerializer(many=True, read_only=True)
@@ -43,6 +56,6 @@ class AttendanceBulkUpdateSerializer(serializers.Serializer):
     def validate_records(self, value):
         valid_statuses = set(AttendanceRecord.Status.values)
         for record in value:
-            if set(record) != {'member', 'status'} or record['status'] not in valid_statuses:
+            if set(record) != {'member', 'status'} or record['status'] not in valid_statuses or not isinstance(record['member'], int):
                 raise serializers.ValidationError('Cada registro requiere member y status válido.')
         return value

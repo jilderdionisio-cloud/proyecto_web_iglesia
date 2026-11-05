@@ -34,6 +34,7 @@ class User(AbstractUser):
     username = models.CharField(max_length=150, blank=True)
     email = models.EmailField('correo electrónico', unique=True)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.COORDINATOR)
+    is_approved = models.BooleanField('aprobado', default=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []

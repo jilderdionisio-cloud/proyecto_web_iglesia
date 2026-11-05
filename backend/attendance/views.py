@@ -7,15 +7,12 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from accounts.models import User
-from accounts.permissions import HasRole
+from accounts.permissions import CanManageAttendance
+from core.pagination import OptionalPageNumberPagination
+from core.params import date_param, date_range, int_param
 from members.models import Member
 from .models import AttendanceRecord, AttendanceSession
-from .serializers import AttendanceBulkUpdateSerializer, AttendanceRecordSerializer, AttendanceSessionSerializer
-
-
-class CanManageAttendance(HasRole):
-    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.PASTOR, User.Role.SECRETARY, User.Role.COORDINATOR)
+from .serializers import AttendanceBulkUpdateSerializer, AttendanceHistorySerializer, AttendanceSessionSerializer
 
 
 class AttendanceSessionViewSet(viewsets.ModelViewSet):
@@ -25,12 +22,17 @@ class AttendanceSessionViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         queryset = AttendanceSession.objects.select_related('event').prefetch_related('records__member')
-        event = self.request.query_params.get('event')
-        date = self.request.query_params.get('date')
+        event = int_param(self.request, 'event')
+        date = date_param(self.request, 'date')
+        start, end = date_range(self.request)
         if event:
             queryset = queryset.filter(event_id=event)
         if date:
             queryset = queryset.filter(date=date)
+        if start:
+            queryset = queryset.filter(date__gte=start)
+        if end:
+            queryset = queryset.filter(date__lte=end)
         return queryset
 
     def perform_create(self, serializer):
@@ -60,20 +62,30 @@ class AttendanceSessionViewSet(viewsets.ModelViewSet):
 
 
 class AttendanceHistoryViewSet(viewsets.ReadOnlyModelViewSet):
-    serializer_class = AttendanceRecordSerializer
+    serializer_class = AttendanceHistorySerializer
     permission_classes = (CanManageAttendance,)
+    pagination_class = OptionalPageNumberPagination
 
-    def get_queryset(self):
-        queryset = AttendanceRecord.objects.select_related('member', 'session__event')
-        event = self.request.query_params.get('event')
-        date = self.request.query_params.get('date')
-        member = self.request.query_params.get('member')
+    def filter_by_event_and_member(self):
+        queryset = AttendanceRecord.objects.select_related('member', 'session__event', 'marked_by')
+        event = int_param(self.request, 'event')
+        member = int_param(self.request, 'member')
         if event:
             queryset = queryset.filter(session__event_id=event)
-        if date:
-            queryset = queryset.filter(session__date=date)
         if member:
             queryset = queryset.filter(member_id=member)
+        return queryset
+
+    def get_queryset(self):
+        queryset = self.filter_by_event_and_member().order_by('-session__date', 'member__last_name', 'member__first_name')
+        date = date_param(self.request, 'date')
+        start, end = date_range(self.request)
+        if date:
+            queryset = queryset.filter(session__date=date)
+        if start:
+            queryset = queryset.filter(session__date__gte=start)
+        if end:
+            queryset = queryset.filter(session__date__lte=end)
         return queryset
 
     @action(detail=False, methods=('get',))
@@ -81,10 +93,9 @@ class AttendanceHistoryViewSet(viewsets.ReadOnlyModelViewSet):
         period = request.query_params.get('period', 'week')
         if period not in ('week', 'month'):
             return Response({'detail': 'period debe ser week o month.'}, status=status.HTTP_400_BAD_REQUEST)
-        reference = request.query_params.get('date')
-        end = timezone.datetime.fromisoformat(reference).date() if reference else timezone.localdate()
+        end = date_param(request, 'date') or timezone.localdate()
         start = end - timedelta(days=6 if period == 'week' else 29)
-        totals = self.get_queryset().filter(session__date__range=(start, end)).aggregate(
+        totals = self.filter_by_event_and_member().filter(session__date__range=(start, end)).aggregate(
             present=Count('id', filter=Q(status=AttendanceRecord.Status.PRESENT)),
             absent=Count('id', filter=Q(status=AttendanceRecord.Status.ABSENT)),
         )

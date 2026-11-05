@@ -26,3 +26,19 @@ class MinistryMembership(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=('ministry', 'member'), name='unique_ministry_member')]
+
+
+class MinistryActivity(models.Model):
+    ministry = models.ForeignKey(Ministry, on_delete=models.CASCADE, related_name='activities')
+    title = models.CharField('título', max_length=160)
+    description = models.TextField(blank=True)
+    date = models.DateField('fecha')
+    location = models.CharField('lugar', max_length=200, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name='created_ministry_activities')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ('-date', '-id')
+
+    def __str__(self):
+        return self.title

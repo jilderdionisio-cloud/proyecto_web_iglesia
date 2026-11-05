@@ -1,22 +1,18 @@
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from accounts.models import User
-from accounts.permissions import HasRole
+from accounts.permissions import CanManageMembers
+from core.pagination import OptionalPageNumberPagination
 
 from .models import Member
 from .serializers import MemberSerializer
 
 
-class CanManageMembers(HasRole):
-    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.PASTOR, User.Role.SECRETARY, User.Role.COORDINATOR)
-
-
 class MemberViewSet(viewsets.ModelViewSet):
     serializer_class = MemberSerializer
-    permission_classes = (IsAuthenticated, CanManageMembers)
+    permission_classes = (CanManageMembers,)
+    pagination_class = OptionalPageNumberPagination
     filter_backends = (filters.SearchFilter, filters.OrderingFilter)
     search_fields = ('first_name', 'last_name', 'email', 'phone')
     ordering_fields = ('first_name', 'last_name', 'joined_at', 'created_at')

@@ -1,15 +1,12 @@
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
 
-from accounts.models import User
-from accounts.permissions import HasRole
-from .models import Ministry, MinistryMembership
-from .serializers import MemberAssignmentSerializer, MinistrySerializer
-
-
-class CanManageMinistries(HasRole):
-    allowed_roles = (User.Role.ADMINISTRATOR, User.Role.PASTOR, User.Role.SECRETARY, User.Role.COORDINATOR)
+from accounts.permissions import CanManageMinistries, CanManageMinistryActivities, is_scoped_coordinator
+from core.params import date_range, int_param
+from .models import Ministry, MinistryActivity, MinistryMembership
+from .serializers import MemberAssignmentSerializer, MinistryActivitySerializer, MinistrySerializer
 
 
 class MinistryViewSet(viewsets.ModelViewSet):
@@ -22,6 +19,12 @@ class MinistryViewSet(viewsets.ModelViewSet):
         if active in ('true', 'false'):
             queryset = queryset.filter(is_active=active == 'true')
         return queryset
+
+    def perform_update(self, serializer):
+        if is_scoped_coordinator(self.request.user):
+            serializer.save(coordinator=self.request.user)
+        else:
+            serializer.save()
 
     @action(detail=True, methods=('post', 'delete'), url_path='members')
     def members(self, request, pk=None):
@@ -36,3 +39,26 @@ class MinistryViewSet(viewsets.ModelViewSet):
         if not deleted:
             return Response({'detail': 'El miembro no pertenece a este ministerio.'}, status=status.HTTP_404_NOT_FOUND)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class MinistryActivityViewSet(viewsets.ModelViewSet):
+    serializer_class = MinistryActivitySerializer
+    permission_classes = (CanManageMinistryActivities,)
+
+    def get_queryset(self):
+        queryset = MinistryActivity.objects.select_related('ministry')
+        ministry = int_param(self.request, 'ministry')
+        start, end = date_range(self.request)
+        if ministry:
+            queryset = queryset.filter(ministry_id=ministry)
+        if start:
+            queryset = queryset.filter(date__gte=start)
+        if end:
+            queryset = queryset.filter(date__lte=end)
+        return queryset
+
+    def perform_create(self, serializer):
+        ministry = serializer.validated_data['ministry']
+        if is_scoped_coordinator(self.request.user) and ministry.coordinator_id != self.request.user.id:
+            raise PermissionDenied('Solo puedes registrar actividades en los ministerios que coordinas.')
+        serializer.save(created_by=self.request.user)

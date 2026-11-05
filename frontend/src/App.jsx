@@ -1,30 +1,94 @@
 import { useEffect, useState } from 'react'
-import { createMember, deactivateMember, getMembers, login, requestPasswordReset } from './api'
+import { getChurchProfile, getMe, getStoredSession, logout, onSessionExpired, storeSession } from './api'
+import Announcements from './Announcements'
 import Attendance from './Attendance'
+import ChurchSettings from './ChurchSettings'
+import Dashboard from './Dashboard'
+import Donations from './Donations'
+import Events from './Events'
+import { useResource } from './hooks'
+import Login, { ChurchBrand } from './Login'
+import Members from './Members'
+import Ministries from './Ministries'
+import { can, ROLE_LABELS } from './permissions'
+import Reports from './Reports'
+import ResetPassword from './ResetPassword'
+import Users from './Users'
 import './App.css'
 
-const savedSession = JSON.parse(localStorage.getItem('church_session') || 'null')
+const SECTIONS = [
+  { key: 'dashboard', label: 'Inicio', Page: Dashboard },
+  { key: 'members', label: 'Miembros', Page: Members },
+  { key: 'attendance', label: 'Asistencias', Page: Attendance, allowed: (user) => can(user, 'attendance.manage') },
+  { key: 'events', label: 'Eventos', Page: Events },
+  { key: 'ministries', label: 'Ministerios', Page: Ministries },
+  { key: 'donations', label: 'Donaciones', Page: Donations, allowed: (user) => can(user, 'finances.summary') },
+  { key: 'announcements', label: 'Comunicados', Page: Announcements },
+  { key: 'reports', label: 'Reportes', Page: Reports, allowed: (user) => can(user, 'reports.operational') || can(user, 'finances.manage') },
+  { key: 'users', label: 'Usuarios', Page: Users, allowed: (user) => can(user, 'users.manage') },
+  { key: 'church', label: 'Iglesia', Page: ChurchSettings },
+]
 
-function Members({ session }) {
-  const [members, setMembers] = useState([]); const [search, setSearch] = useState(''); const [status, setStatus] = useState('true'); const [loading, setLoading] = useState(true); const [message, setMessage] = useState(''); const [form, setForm] = useState({ first_name: '', last_name: '', email: '', phone: '' })
-  async function loadMembers() { setLoading(true); try { setMembers(await getMembers(session, search, status)); setMessage('') } catch (error) { setMessage(error.message) } finally { setLoading(false) } }
-  useEffect(() => { loadMembers() }, [status]) // eslint-disable-line react-hooks/exhaustive-deps
-  async function handleCreate(event) { event.preventDefault(); try { await createMember(session, form); setForm({ first_name: '', last_name: '', email: '', phone: '' }); setMessage('Miembro registrado correctamente.'); loadMembers() } catch (error) { setMessage(error.message) } }
-  async function handleDeactivate(id) { if (!window.confirm('¿Deseas desactivar este miembro? El registro se conservará.')) return; try { await deactivateMember(session, id); setMessage('Miembro desactivado.'); loadMembers() } catch (error) { setMessage(error.message) } }
-  return <section className="module"><header className="module-header"><p className="eyebrow">RF-02 · Gestión de miembros</p><h1>Miembros</h1></header><div className="member-layout"><form className="member-form" onSubmit={handleCreate}><h2>Registrar miembro</h2><label>Nombres<input required value={form.first_name} onChange={(e) => setForm({ ...form, first_name: e.target.value })} /></label><label>Apellidos<input required value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></label><label>Correo electrónico<input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label><label>Teléfono<input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label><button className="primary" type="submit">Guardar miembro</button></form><div className="member-list"><div className="filters"><input aria-label="Buscar miembro" placeholder="Buscar por nombre, correo o teléfono" value={search} onChange={(e) => setSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && loadMembers()} /><button onClick={loadMembers}>Buscar</button><select value={status} onChange={(e) => setStatus(e.target.value)} aria-label="Filtrar estado"><option value="true">Activos</option><option value="false">Inactivos</option></select></div>{message && <p className="message" role="status">{message}</p>}{loading ? <p>Cargando miembros…</p> : <div className="table-wrap"><table><thead><tr><th>Nombre</th><th>Contacto</th><th>Estado</th><th>Acción</th></tr></thead><tbody>{members.length ? members.map((member) => <tr key={member.id}><td>{member.full_name}</td><td>{member.email || member.phone || 'Sin datos'}</td><td><span className={`badge ${member.is_active ? 'active-badge' : ''}`}>{member.is_active ? 'Activo' : 'Inactivo'}</span></td><td>{member.is_active && <button className="danger-button" onClick={() => handleDeactivate(member.id)}>Desactivar</button>}</td></tr>) : <tr><td colSpan="4">No hay miembros para este filtro.</td></tr>}</tbody></table></div>}</div></div></section>
+function Shell({ user, onLogout }) {
+  const [section, setSection] = useState('dashboard')
+  const church = useResource(getChurchProfile, [])
+  const available = SECTIONS.filter((item) => !item.allowed || item.allowed(user))
+  const { Page } = available.find((item) => item.key === section) ?? available[0]
+
+  function openSection(key) {
+    setSection(key)
+    window.scrollTo(0, 0)
+  }
+
+  return (
+    <div className="shell">
+      <aside className="sidebar">
+        <ChurchBrand church={church.data} />
+        <nav aria-label="Navegación principal">
+          {available.map(({ key, label }) => <button key={key} className={section === key ? 'active' : ''} onClick={() => openSection(key)}>{label}</button>)}
+        </nav>
+        <div className="sidebar-user">
+          <span>{user.first_name || user.email}</span>
+          <small>{ROLE_LABELS[user.role]}</small>
+          <button onClick={onLogout}>Cerrar sesión</button>
+        </div>
+      </aside>
+      <main className="dashboard"><Page user={user} onChurchChange={church.reload} /></main>
+    </div>
+  )
 }
 
-function Dashboard({ session, onLogout }) {
-  const [section, setSection] = useState('dashboard'); const cards = [['Miembros activos', '—'], ['Próximos eventos', '—'], ['Asistencia semanal', '—'], ['Ministerios', '—']]; const nav = [['dashboard', 'Inicio'], ['members', 'Miembros'], ['attendance', 'Asistencias'], ['events', 'Eventos'], ['ministries', 'Ministerios'], ['donations', 'Donaciones'], ['announcements', 'Comunicados'], ['reports', 'Reportes']]
-  return <div className="shell"><aside className="sidebar"><div className="brand">IG<span>•</span>Gestión</div><nav aria-label="Navegación principal">{nav.map(([key, label]) => <button key={key} className={section === key ? 'active' : ''} onClick={() => setSection(key)}>{label}</button>)}</nav></aside><main className="dashboard">{section === 'members' ? <Members session={session} /> : section === 'attendance' ? <Attendance session={session} /> : <><header className="topbar"><div><p className="eyebrow">Panel de control</p><h1>Bienvenido, {session.user.first_name || session.user.email}</h1></div><div className="user-menu"><span>{session.user.role}</span><button onClick={onLogout}>Cerrar sesión</button></div></header><section className="metrics" aria-label="Resumen de la iglesia">{cards.map(([label, value]) => <article className="metric" key={label}><p>{label}</p><strong>{value}</strong><small>Se mostrará al registrar datos</small></article>)}</section><section className="empty-panel"><h2>Comienza a organizar tu iglesia</h2><p>La autenticación y los roles ya están configurados. Continúa registrando miembros para alimentar los indicadores del dashboard.</p></section></>}</main></div>
+function App() {
+  const [session, setSession] = useState(getStoredSession)
+  const isLoggedIn = Boolean(session)
+
+  useEffect(() => {
+    onSessionExpired(() => setSession(null))
+  }, [])
+
+  // El rol puede cambiar entre visitas: la copia guardada se actualiza con la del servidor.
+  useEffect(() => {
+    if (!isLoggedIn) return
+    getMe().then((user) => {
+      const stored = getStoredSession()
+      if (!stored) return
+      storeSession({ ...stored, user })
+      setSession({ ...stored, user })
+    }).catch(() => {})
+  }, [isLoggedIn])
+
+  function handleLogin(data) {
+    storeSession(data)
+    setSession(data)
+  }
+
+  async function handleLogout() {
+    await logout()
+    setSession(null)
+  }
+
+  if (window.location.pathname === '/reset-password') return <ResetPassword />
+  return session ? <Shell user={session.user} onLogout={handleLogout} /> : <Login onLogin={handleLogin} />
 }
 
-function Login({ onLogin }) {
-  const [email, setEmail] = useState(''); const [password, setPassword] = useState(''); const [message, setMessage] = useState(''); const [loading, setLoading] = useState(false)
-  async function handleSubmit(event) { event.preventDefault(); setLoading(true); setMessage(''); try { onLogin(await login({ email, password })) } catch (error) { setMessage(error.message) } finally { setLoading(false) } }
-  async function handleRecovery() { if (!email) return setMessage('Escribe tu correo primero para recuperar tu contraseña.'); try { setMessage((await requestPasswordReset(email)).detail) } catch (error) { setMessage(error.message) } }
-  return <main className="login-page"><section className="login-card" aria-labelledby="login-title"><div className="brand">IG<span>•</span>Gestión</div><p className="eyebrow">Sistema Web de Gestión de Iglesia</p><h1 id="login-title">Inicia sesión</h1><p className="muted">Accede con el correo y la contraseña proporcionados por tu administrador.</p><form onSubmit={handleSubmit}><label>Correo electrónico<input type="email" value={email} onChange={(event) => setEmail(event.target.value)} required autoComplete="email" /></label><label>Contraseña<input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required autoComplete="current-password" /></label>{message && <p className="message" role="status">{message}</p>}<button className="primary" type="submit" disabled={loading}>{loading ? 'Ingresando…' : 'Ingresar'}</button><button className="link-button" type="button" onClick={handleRecovery}>¿Olvidaste tu contraseña?</button></form></section></main>
-}
-
-function App() { const [session, setSession] = useState(savedSession); function handleLogin(data) { localStorage.setItem('church_session', JSON.stringify(data)); setSession(data) } function handleLogout() { localStorage.removeItem('church_session'); setSession(null) } return session ? <Dashboard session={session} onLogout={handleLogout} /> : <Login onLogin={handleLogin} /> }
 export default App

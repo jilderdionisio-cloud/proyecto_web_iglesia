@@ -1,16 +1,27 @@
-# React + Vite
+# Frontend — Sistema Web de Gestión de Iglesia
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Aplicación React + Vite que consume la API Django de `backend/`.
 
-Currently, two official plugins are available:
+## Comandos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```powershell
+npm install
+npm run dev      # Servidor de desarrollo en http://localhost:5173
+npm run lint     # Oxlint
+npm run build    # Compilación de producción en dist/
+```
 
-## React Compiler
+Durante el desarrollo, Vite redirige `/api` y `/media` a `http://127.0.0.1:8000`, por lo que el backend debe estar en ejecución.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Organización
 
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and Oxlint's TypeScript related rules in your project.
+| Archivo | Responsabilidad |
+| --- | --- |
+| `src/App.jsx` | Sesión, navegación por rol y ruta `/reset-password`. |
+| `src/api.js` | Cliente de la API: sesión en `localStorage`, renovación de tokens y funciones por módulo. |
+| `src/hooks.js` | `useResource`, carga de datos con recarga y descarte de respuestas superadas. |
+| `src/permissions.js` | Copia de la matriz de permisos para mostrar u ocultar opciones. La autorización real está en la API. |
+| `src/format.js` | Formato de fechas y moneda en `es-MX`. |
+| `src/charts.jsx` | Gráfica de columnas sin dependencias, con leyenda, tooltip y tabla de datos. |
+| `src/Dashboard.jsx`, `Members.jsx`, `Attendance.jsx`, `Events.jsx`, `Ministries.jsx`, `Donations.jsx`, `Announcements.jsx`, `Reports.jsx`, `Users.jsx`, `ChurchSettings.jsx` | Una pantalla por módulo. |
+| `src/Login.jsx`, `ResetPassword.jsx` | Acceso, solicitud de cuenta y recuperación de contraseña. |
